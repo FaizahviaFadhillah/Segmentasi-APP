@@ -208,8 +208,7 @@ with tab1:
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
-# --- PERUBAHAN DIMULAI DI SINI ---
-# 2. Modifikasi isi Tab 2 untuk menampilkan dataset dan tombol download
+
 with tab2:
     st.header("📂 Contoh Dataset")
     st.markdown("""
@@ -218,25 +217,27 @@ with tab2:
     """)
     
     # Tampilkan dataframe contoh
-    st.dataframe(df_sample)
+    if 'df_sample' in locals(): # Pastikan df_sample sudah didefinisikan
+        st.dataframe(df_sample)
     
-    # Tambahkan tombol download untuk contoh dataset
-    st.download_button(
-       label="📥 Download Contoh Dataset (CSV)",
-       data=df_sample.to_csv(index=False).encode('utf-8'),
-       file_name='data_pelanggan_sintetik.csv',
-       mime='text/csv',
-    )
-    
-    st.markdown("---") # Garis pemisah
-    st.subheader("Keterangan Kolom")
-    st.markdown("""
-    - **ID Pelanggan**: ID unik untuk setiap pelanggan.
-    - **Umur**: Usia pelanggan dalam tahun.
-    - **Pendapatan Tahunan (juta Rp)**: Estimasi pendapatan tahunan pelanggan.
-    - **Skor Belanja (1-100)**: Skor yang diberikan berdasarkan perilaku belanja (1: jarang belanja, 100: sering belanja).
-    """)
-# --- AKHIR PERUBAHAN ---
+        # Tambahkan tombol download untuk contoh dataset
+        st.download_button(
+           label="📥 Download Contoh Dataset (CSV)",
+           data=df_sample.to_csv(index=False).encode('utf-8'),
+           file_name='data_pelanggan_sintetik.csv',
+           mime='text/csv',
+        )
+        
+        st.markdown("---") # Garis pemisah
+        st.subheader("Keterangan Kolom")
+        st.markdown("""
+        - **ID Pelanggan**: ID unik untuk setiap pelanggan.
+        - **Umur**: Usia pelanggan dalam tahun.
+        - **Total Belanja**: Jumlah total uang yang dibelanjakan oleh pelanggan.
+        - **Frekuensi Kunjungan**: Jumlah total kunjungan yang dilakukan oleh pelanggan.
+        """)
+    else:
+        st.warning("Gagal memuat contoh dataset. Silakan unggah dataset Anda sendiri di tab 'Segmentasi'.")
 
 
 with tab3:
