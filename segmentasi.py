@@ -7,6 +7,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 
+# --- PERUBAHAN DIMULAI DI SINI ---
+# 1. Muat contoh dataset di awal agar bisa diakses di Tab 2
+# Pastikan file 'data_pelanggan_sintetik.csv' ada di repositori GitHub Anda.
+try:
+    df_sample = pd.read_csv("data_pelanggan_sintetik.csv")
+except FileNotFoundError:
+    st.error("File 'data_pelanggan_sintetik.csv' tidak ditemukan. Pastikan file ini ada di repositori GitHub Anda bersama file Python.")
+    # Buat dataframe kosong sebagai placeholder untuk menghindari error lebih lanjut
+    df_sample = pd.DataFrame({
+        'ID Pelanggan': [], 'Umur': [], 'Pendapatan Tahunan (juta Rp)': [], 'Skor Belanja (1-100)': []
+    })
+# --- AKHIR PERUBAHAN ---
+
+
 # CSS Styling
 st.markdown("""
 <style>
@@ -33,6 +47,7 @@ section[data-testid="stFileUploader"] label {
             /* Supaya teks di header dan paragraf tidak putih */
 h1, h2, h3, p, label, div, span {
     color: #154360 !important;
+}
 h1, h3 {
     color: #2E86C1;
     text-align: center;
@@ -48,6 +63,7 @@ footer {
     padding: 15px;
     margin-top: 20px;
     font-family: sans-serif;
+    border-radius: 5px;
 }
 
 /* Gaya upload file custom */
@@ -134,7 +150,7 @@ with tab1:
 
                 if algo == "K-Means":
                     n_clusters = st.slider("Jumlah cluster", 2, 10, 3)
-                    model = KMeans(n_clusters=n_clusters, random_state=42)
+                    model = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
                     labels = model.fit_predict(X_scaled)
                 elif algo == "DBSCAN":
                     eps = st.slider("Nilai eps (radius)", 0.1, 5.0, 0.5)
@@ -151,15 +167,17 @@ with tab1:
 
                 # Untuk DBSCAN, label -1 artinya noise, kita buat warna khusus
                 if algo == "DBSCAN":
-                    palette = sns.color_palette("Set2", np.unique(labels).max() + 1)
+                    unique_labels_for_palette = np.unique(labels)
+                    palette_size = len(unique_labels_for_palette) - (1 if -1 in unique_labels_for_palette else 0)
+                    palette = sns.color_palette("Set2", palette_size)
                     colors = [palette[x] if x >= 0 else (0.5,0.5,0.5) for x in labels]
                     ax.scatter(X_scaled[:, 0], X_scaled[:, 1], c=colors)
                 else:
                     sns.scatterplot(x=X_scaled[:, 0], y=X_scaled[:, 1], hue=labels, palette="Set2", ax=ax, legend='full')
 
                 ax.set_title("Hasil Segmentasi")
-                ax.set_xlabel(col1)
-                ax.set_ylabel(col2)
+                ax.set_xlabel(f"Scaled {col1}")
+                ax.set_ylabel(f"Scaled {col2}")
                 st.pyplot(fig)
 
                 # Hitung jumlah cluster (DBSCAN ada noise -1 yang tidak dihitung cluster)
@@ -190,19 +208,36 @@ with tab1:
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
+# --- PERUBAHAN DIMULAI DI SINI ---
+# 2. Modifikasi isi Tab 2 untuk menampilkan dataset dan tombol download
 with tab2:
-    st.header("📂 Penjelasan Dataset")
+    st.header("📂 Contoh Dataset")
     st.markdown("""
-    Pastikan dataset memiliki:
-    - Minimal 2 kolom numerik (misalnya: Umur, Total Belanja, Frekuensi Kunjungan)
-    - Format file: .csv
-    
-    Contoh isi dataset:
-    | Umur | Belanja | Kunjungan |
-    |------|---------|-----------|
-    | 25   | 500000  | 5         |
-    | 32   | 1200000 | 10        |
+    Anda dapat menggunakan contoh dataset di bawah ini untuk mencoba aplikasi. 
+    Dataset ini berisi informasi dasar pelanggan yang dapat digunakan untuk segmentasi.
     """)
+    
+    # Tampilkan dataframe contoh
+    st.dataframe(df_sample)
+    
+    # Tambahkan tombol download untuk contoh dataset
+    st.download_button(
+       label="📥 Download Contoh Dataset (CSV)",
+       data=df_sample.to_csv(index=False).encode('utf-8'),
+       file_name='data_pelanggan_sintetik.csv',
+       mime='text/csv',
+    )
+    
+    st.markdown("---") # Garis pemisah
+    st.subheader("Keterangan Kolom")
+    st.markdown("""
+    - **ID Pelanggan**: ID unik untuk setiap pelanggan.
+    - **Umur**: Usia pelanggan dalam tahun.
+    - **Pendapatan Tahunan (juta Rp)**: Estimasi pendapatan tahunan pelanggan.
+    - **Skor Belanja (1-100)**: Skor yang diberikan berdasarkan perilaku belanja (1: jarang belanja, 100: sering belanja).
+    """)
+# --- AKHIR PERUBAHAN ---
+
 
 with tab3:
     st.header("ℹ️ Tentang Aplikasi")
@@ -211,12 +246,10 @@ with tab3:
 
     | Algoritma               | Tujuan |
     |-------------------------|--------|
-    | *K-Means*             | Mengelompokkan pelanggan berdasarkan kemiripan data numerik |
-    | *DBSCAN*              | Mengelompokkan berdasarkan kepadatan, cocok untuk data tidak beraturan |
+    | *K-Means* | Mengelompokkan pelanggan berdasarkan kemiripan data numerik |
+    | *DBSCAN* | Mengelompokkan berdasarkan kepadatan, cocok untuk data tidak beraturan |
     | *Hierarchical Clustering* | Mengelompokkan secara bertingkat, cocok untuk visualisasi dendrogram |
 
-    Dibuat oleh: *Kelompok 1*  
-    Tahun: *2025*  
-    """)
+    Dibuat oleh: *Kelompok 1* Tahun: *2025* """)
 
 st.markdown("<footer>© 2025 - Segmentasi Pelanggan App by Kelompok 1</footer>", unsafe_allow_html=True)
